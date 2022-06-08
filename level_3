@@ -2,18 +2,21 @@
 
 import requests
 from bs4 import BeautifulSoup
+from PIL import Image
 import pytesseract
 
 VOTES = 1024
-KEY = '0'
-URL = 'http://158.69.76.135/level3.php'
+KEY = "0"
+URL = "http://158.69.76.135/level3.php"
 CAPTCHA = " "
-URL_CAPTCHA = 'http://158.69.76.135/captcha.php'
-FORM = {'id': "4275", 'holdthedoor': "Submit", 'key': KEY, 'captcha': CAPTCHA}
+URL_CAPTCHA = "http://158.69.76.135/captcha.php"
+
+FORM = {'id': "4275", 'holdthedoor': "submit", 'key': KEY, 'captcha': CAPTCHA}
 H = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:100.0)'
            + ' Gecko/20100101 Firefox/100.0', 'referer': URL}
+try_vote = 0
 
-for i in range(VOTES):
+while try_vote < VOTES:
     session = requests.Session()
     auth = session.get(URL, headers=H).text
     soup = BeautifulSoup(auth, 'html.parser')
@@ -21,6 +24,8 @@ for i in range(VOTES):
         f.write(session.get(URL_CAPTCHA).content)
     CAPTCHA = pytesseract.image_to_string('captcha.png')[:-2]
     KEY = soup.find(type="hidden")['value']
-    FORM = {'id': "4275", 'holdthedoor': "Submit", 'key': KEY, 'captcha': CAPTCHA}
+    FORM = {'id': "4275", 'holdthedoor': "submit", 'key': KEY, 'captcha': CAPTCHA}
     stat = session.post(URL, data=FORM, headers=H)
+    if str(stat.content) != "b'See you later hacker![11]'":
+        try_vote += 1
 
